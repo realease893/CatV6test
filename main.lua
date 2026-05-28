@@ -179,7 +179,7 @@ if not shared.VapeIndependent then
 		end
 		return false
 	end
-	local supported = httpService:JSONDecode(callback('catrewrite/profiles/games.json'))
+	local supported = httpService:JSONDecode(callback('catrewrite/profiles/supported.json'))
 	
 	for i, v in supported do
 		if found then break; end
