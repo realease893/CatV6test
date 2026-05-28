@@ -24,6 +24,7 @@ local cloneref = cloneref or function(obj)
 end
 local inputService = cloneref(game:GetService('UserInputService'))
 local httpService = cloneref(game:GetService('HttpService'))
+local runService = cloneref(game:GetService('RunService'))
 local playersService = cloneref(game:GetService('Players'))
 
 if shared.maincat then
@@ -133,11 +134,10 @@ local function finishLoading()
 	if vape.Categories.Main.Options['GUI bind indicator'].Enabled then
 		if getgenv().catrole == 'HWID MISMATCH' then
 			vape:CreateNotification('Cat', 'HWID mismatch, Please go to our server And press reset hwid on script panel', 60, 'alert')
-			task.wait(0.5)
 		else
 			vape:CreateNotification('Cat', 'Authenticated as '.. (getgenv().catname or 'Guest').. ' with ('.. (getgenv().catrole or 'Free').. ')', 4, 'info')
-			task.wait(4)
 		end
+		runService.PostSimulation:Wait()
 		vape:CreateNotification('Finished Loading', not inputService.KeyboardEnabled and vape.VapeButton and 'Press the button in the top right to open GUI' or 'Press '..table.concat(vape.Keybind, ' + '):upper()..' to open GUI', 5)
 	end
 end
@@ -160,20 +160,44 @@ if not shared.VapeIndependent then
 
 	local found = false
 	local callback = shared.VapeDeveloper and readfile or downloadFile
+	local function loadPlaceGame(placeId)
+		local path = 'catrewrite/games/'..placeId..'.lua'
+		if isfile(path) then
+			loadstring(readfile(path), tostring(game.PlaceId))(license)
+			return true
+		end
+		if shared.VapeDeveloper then
+			return false
+		end
+
+		local suc, res = pcall(function()
+			return game:HttpGet('https://raw.githubusercontent.com/MaxlaserTech/CatV6/'..readfile('catrewrite/profiles/commit.txt')..'/games/'..placeId..'.lua', true)
+		end)
+		if suc and res ~= '404: Not Found' then
+			loadstring(downloadFile(path), tostring(game.PlaceId))(license)
+			return true
+		end
+		return false
+	end
+	local supported = httpService:JSONDecode(callback('catrewrite/profiles/games.json'))
 	
-	for i, v in httpService:JSONDecode(callback('catrewrite/profiles/supported.json')) do
+	for i, v in supported do
 		if found then break; end
-		if game.GameId == v.gameid then
+		if typeof(v) == 'table' and (v.gameid == nil or game.GameId == v.gameid) then
 			for i2, v2 in v do
-				if typeof(v2) == 'table' and table.find(v2.Ids, game.PlaceId) then
-					found = true
+				if typeof(v2) == 'table' and (v2.Place == game.PlaceId or (typeof(v2.Ids) == 'table' and table.find(v2.Ids, game.PlaceId))) then
 					vape.Place = v2.Place
-					if not isfolder('catrewrite/games/'.. i) then
-						makefolder('catrewrite/games/'.. i)
+					if v.gameid == nil then
+						found = loadPlaceGame(vape.Place)
+					else
+						found = true
+						if not isfolder('catrewrite/games/'.. i) then
+							makefolder('catrewrite/games/'.. i)
+						end
+						
+						loadstring(callback('catrewrite/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))(license)
+						loadstring(callback('catrewrite/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))(license)
 					end
-					
-					loadstring(callback('catrewrite/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))(license)
-					loadstring(callback('catrewrite/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))(license)
 					break
 				end
 			end
@@ -181,12 +205,7 @@ if not shared.VapeIndependent then
 	end
 
 	if not found then
-		local suc, res = pcall(function()
-			return not shared.VapeDeveloper and game:HttpGet('https://raw.githubusercontent.com/MaxlaserTech/CatV6/'..readfile('catrewrite/profiles/commit.txt')..'/games/'..game.PlaceId..'.lua', true) or '404: Not Found'
-		end)
-		if suc and res ~= '404: Not Found' then
-			loadstring(downloadFile('catrewrite/games/'..game.PlaceId..'.lua'), tostring(game.PlaceId))(license)
-		end
+		loadPlaceGame(game.PlaceId)
 	end
 	
 	finishLoading()

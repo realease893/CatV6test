@@ -52,6 +52,10 @@ local function getMousePosition()
 	return inputService.GetMouseLocation(inputService)
 end
 
+local function sortDistance(a, b)
+	return a.Magnitude < b.Magnitude
+end
+
 local function loopClean(tbl)
 	for i, v in tbl do
 		if type(v) == 'table' then
@@ -142,9 +146,9 @@ entitylib.EntityMouse = function(entitysettings)
 			end
 		end
 
-		table.sort(sortingTable, entitysettings.Sort or function(a, b)
-			return a.Magnitude < b.Magnitude
-		end)
+		if #sortingTable > 1 then
+			table.sort(sortingTable, entitysettings.Sort or sortDistance)
+		end
 
 		for _, v in sortingTable do
 			if entitysettings.Wallcheck then
@@ -162,26 +166,28 @@ end
 entitylib.EntityPosition = function(entitysettings)
 	if entitylib.isAlive then
 		local localPosition, sortingTable = entitysettings.Origin or entitylib.character.HumanoidRootPart.Position, {}
+		local range, customSort = entitysettings.Range, entitysettings.Sort or entitysettings.Priority
+		local rangeSquared = range * range
 		for _, v in entitylib.List do
 			if not entitysettings.Players and v.Player then continue end
 			if not entitysettings.NPCs and v.NPC then continue end
 			if not v.Targetable then continue end
-			local mag = (v[entitysettings.Part].Position - localPosition).Magnitude
-			if mag > entitysettings.Range then continue end
+			local delta = v[entitysettings.Part].Position - localPosition
+			local mag = delta:Dot(delta)
+			if mag > rangeSquared then continue end
 			if entitylib.isVulnerable(v) then
 				table.insert(sortingTable, {
 					Entity = v,
-					Magnitude = v.Target and -1 or mag
+					Magnitude = v.Target and -1 or (customSort and math.sqrt(mag) or mag)
 				})
 			end
 		end
 
-		table.sort(sortingTable, entitysettings.Sort or function(a, b)
-			return a.Magnitude < b.Magnitude
-		end)
-
-		if entitysettings.Priority then
-			table.sort(sortingTable, entitysettings.Priority)
+		if #sortingTable > 1 then
+			table.sort(sortingTable, entitysettings.Sort or sortDistance)
+			if entitysettings.Priority then
+				table.sort(sortingTable, entitysettings.Priority)
+			end
 		end
 
 		for _, v in sortingTable do
@@ -201,20 +207,23 @@ entitylib.AllPosition = function(entitysettings)
 	local returned = {}
 	if entitylib.isAlive then
 		local localPosition, sortingTable = entitysettings.Origin or entitylib.character.HumanoidRootPart.Position, {}
+		local range, customSort = entitysettings.Range, entitysettings.Sort
+		local rangeSquared = range * range
 		for _, v in entitylib.List do
 			if not entitysettings.Players and v.Player then continue end
 			if not entitysettings.NPCs and v.NPC then continue end
 			if not v.Targetable then continue end
-			local mag = (v[entitysettings.Part].Position - localPosition).Magnitude
-			if mag > entitysettings.Range then continue end
+			local delta = v[entitysettings.Part].Position - localPosition
+			local mag = delta:Dot(delta)
+			if mag > rangeSquared then continue end
 			if entitylib.isVulnerable(v) then
-				table.insert(sortingTable, {Entity = v, Magnitude = v.Target and -1 or mag})
+				table.insert(sortingTable, {Entity = v, Magnitude = v.Target and -1 or (customSort and math.sqrt(mag) or mag)})
 			end
 		end
 
-		table.sort(sortingTable, entitysettings.Sort or function(a, b)
-			return a.Magnitude < b.Magnitude
-		end)
+		if #sortingTable > 1 then
+			table.sort(sortingTable, entitysettings.Sort or sortDistance)
+		end
 
 		for _, v in sortingTable do
 			if entitysettings.Wallcheck then

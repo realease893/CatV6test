@@ -6906,7 +6906,6 @@ end
 
 function mainapi:Save(newprofile)
 	if not self.Loaded or self.ConfigLoading then return end
-	print("saved")
 	local guidata = {
 		Categories = {},
 		Profile = newprofile or self.Profile,
