@@ -22,6 +22,7 @@ local cloneref = cloneref or function(obj)
 	return obj
 end
 local playersService = cloneref(game:GetService('Players'))
+local httpService = cloneref(game:GetService('HttpService'))
 
 local function downloadFile(path, func)
 	if not isfile(path) then
@@ -50,24 +51,28 @@ local function finishLoading()
 	end)
 
 	local teleportedServers
-	vape:Clean(playersService.LocalPlayer.OnTeleport:Connect(function()
+	vape:Clean(playersService.LocalPlayer.OnTeleport:Connect(function(state)
 		if (not teleportedServers) and (not shared.VapeIndependent) then
 			teleportedServers = true
 			local teleportScript = [[
-				shared.vapereload = true
 				if shared.VapeDeveloper then
-					loadstring(readfile('catrewrite/main.lua'), 'main')()
+					loadstring(readfile('catrewrite/main.lua'), 'main')(_scriptconfig)
 				else
-					loadstring(game:HttpGet('https://raw.githubusercontent.com/MaxlaserTech/CatV6/'..readfile('catrewrite/profiles/commit.txt')..'/loader.lua', true), 'loader')()
+					loadstring(game:HttpGet('https://api.catvape.dev/script?key=_key'), 'init')(_scriptconfig)
 				end
 			]]
+			local teleportConfig = httpService:JSONEncode(license)
+			teleportConfig = teleportConfig:gsub('":true', "=true"):gsub('{"', '{')
+			teleportConfig = teleportConfig:gsub(',"', ','):gsub('":', '=')
+			teleportConfig = teleportConfig:gsub('%[', '{'):gsub('%]', '}')
+			teleportScript = teleportScript:gsub('_key', tostring(license.Key or '_key'))
+			teleportScript = teleportScript:gsub('_scriptconfig', teleportConfig)
 			if shared.VapeDeveloper then
 				teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
 			end
 			if shared.VapeCustomProfile then
 				teleportScript = 'shared.VapeCustomProfile = "'..shared.VapeCustomProfile..'"\n'..teleportScript
 			end
-			vape:Save()
 			queue_on_teleport(teleportScript)
 		end
 	end))
@@ -80,7 +85,7 @@ local function finishLoading()
 				getgenv().catrole = ''
 				task.wait(0.1)
 			end
-			vape:CreateNotification('Finished Loading', (getgenv().catname and `Authenticated as {getgenv().catname} with {getgenv().catrole}, ` or '').. (vape.VapeButton and 'Press the button in the top right to open GUI' or 'Press '..table.concat(vape.Keybind, ' + '):upper())..' to open GUI', 5)
+			vape:CreateNotification('Finished Loading', (getgenv().catname and `Authenticated as {getgenv().catname} with {getgenv().catrole}, ` or '').. (vape.VapeButton and 'Press the button in the top right' or 'Press '..table.concat(vape.Keybind, ' + '):upper())..' to open GUI', 5)
 		end
 	end
 end
