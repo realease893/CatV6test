@@ -4830,7 +4830,7 @@ function mainapi:CreateCategoryList(categorysettings)
 end
 
 function mainapi:CreateSearch()
-	local xscale = inputService.TouchEnabled and 0.4 or 0.5
+	local xscale = inputService.TouchEnabled and 0.3 or 0.5
 	local searchbkg = Instance.new('Frame')
 	searchbkg.Name = 'Search'
 	searchbkg.Size = UDim2.fromOffset(220, 37)
@@ -6200,7 +6200,7 @@ mainapi.Scale = guipane:CreateToggle({
 	Function = function(callback)
 		scaleslider.Object.Visible = not callback
 		if callback then
-			scale.Scale = math.max(gui.AbsoluteSize.X / 1920, 0.6)
+			scale.Scale = math.max(gui.AbsoluteSize.X / 1920, 0.45)
 		else
 			scale.Scale = scaleslider.Value
 		end
