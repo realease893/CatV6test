@@ -814,7 +814,7 @@ run(function()
 		QueueCard = require(lplr.PlayerScripts.TS.controllers.global.queue.ui['queue-card']).QueueCard,
 		QueueMeta = require(replicatedStorage.TS.game['queue-meta']).QueueMeta,
 		Roact = require(replicatedStorage['rbxts_include']['node_modules']['@rbxts']['roact'].src),
-        RankMeta = require(replicatedStorage.TS.rank['rank-meta']).RankMeta,
+		RankMeta = require(replicatedStorage.TS.rank['rank-meta']).RankMeta,
 		RuntimeLib = require(replicatedStorage['rbxts_include'].RuntimeLib),
 		SummonerKitBalance = require(replicatedStorage.TS.games.bedwars.kit.kits.summoner['summoner-kit-balance']).SummonerKitBalance,
 		StatusEffectUtil = require(replicatedStorage.TS['status-effect']['status-effect-util']).StatusEffectUtil,
@@ -3843,7 +3843,7 @@ run(function()
                                         end
     
                                         local dir = CFrame.lookAt(selfpos, actualRoot.Position).LookVector
-                                        local pos = selfpos + dir * math.max(delta.Magnitude - getHitreg(delta.Magnitude), 0)
+                                        local pos = selfpos + dir * math.max(delta.Magnitude - 14.4, 0)
                                         bedwars.SwordController.lastAttack = workspace:GetServerTimeNow()
                                         store.attackReach = (delta.Magnitude * 100) // 1 / 100
                                         store.attackReachUpdate = tick() + 1
@@ -6715,7 +6715,8 @@ run(function()
     				Icon.Size = UDim2.fromOffset(30, 30)
     				Icon.Position = UDim2.fromOffset(size.X + 10, -4)
     				Icon.BackgroundTransparency = 1
-    				Icon.Image = store.rank[ent.Player]:async() and bedwars.RankMeta[store.rank[ent.Player]:async()].image or ''
+    				Icon.Image = store.rank[ent.Player]:async() and bedwars.RankMeta[store.rank[ent.Player]:async()].image
+    					or ''
     				Icon.Parent = nametag
     			end
     		end)
