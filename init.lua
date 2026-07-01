@@ -1,7 +1,6 @@
 --!nocheck
 local license = ... or {}
 license.Key = script_key or license.Key
-print("cvt strated")
 
 local cloneref = cloneref or function(ref) return ref end
 local isfile = isfile or function(file)
